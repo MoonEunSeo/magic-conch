@@ -23,10 +23,9 @@ const __dirname = path.dirname(__filename);
 
 // ✅ 정적 파일 서빙 (빌드된 프론트 연결용)
 app.use(express.static(path.join(__dirname, "../frontend/dist")));
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "../frontend/dist", "index.html"));
-});
-
+app.use((req, res) => {
+    res.sendFile(path.join(__dirname, "../frontend/dist", "index.html"));
+  });
 // ✅ 서버 시작
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, "0.0.0.0", () =>

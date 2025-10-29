@@ -1,10 +1,51 @@
 <!doctype html>
-<html lang="en">
+<html lang="ko">
   <head>
+    <!--  기본 메타 -->
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>frontend</title>
+    <title>마법의 소라고동 🐚 | Magic Conch - 대답해주는 인공지능</title>
+    <meta name="description" content="AI 소라고동에게 질문하세요 🐚 감성적인 인공지능이 당신의 고민에 한마디 대답을 건넵니다. 텔레파시처럼 연결되는 마법의 순간, Magic Conch에서 경험하세요." />
+    <meta name="keywords" content="AI, 인공지능, 소라고동, Magic Conch, Telepathy, 감성웹, 대화형웹, 랜덤챗, AI답변, 철학적인웹, 노랭" />
+
+    <!--  Open Graph (SNS 공유용 미리보기) -->
+    <meta property="og:title" content="마법의 소라고동 🐚 Magic Conch" />
+    <meta property="og:description" content="AI 소라고동이 당신의 질문에 대답합니다. 감성적인 인공지능 대화 서비스." />
+    <meta property="og:image" content="https://magic-conch-omega.vercel.app/og-image.png" />
+    <meta property="og:url" content="https://magic-conch-omega.vercel.app" />
+    <meta property="og:type" content="website" />
+
+    <!--  Twitter 카드 (X 공유용) -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="마법의 소라고동 🐚" />
+    <meta name="twitter:description" content="AI 소라고동에게 물어보세요. Telepathy처럼 이어지는 대화형 감성웹." />
+    <meta name="twitter:image" content="https://magic-conch-omega.vercel.app/og-image.png" />
+
+    <!--  파비콘 / 테마 색상 -->
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="theme-color" content="#a6d8e0" />
+
+    <!--  구조화 데이터 (Google이 AI 대화 서비스로 인식하게) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "마법의 소라고동 (Magic Conch)",
+      "applicationCategory": "AI Chat",
+      "operatingSystem": "Web",
+      "description": "AI 소라고동에게 질문을 던지면 감성적인 대답을 주는 대화형 웹앱.",
+      "url": "https://magic-conch-omega.vercel.app",
+      "creator": {
+        "@type": "Person",
+        "name": "노랭"
+      }
+    }
+    </script>
+
+    <!--  Vite 기본 -->
+    <link rel="canonical" href="https://magic-conch-omega.vercel.app" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="stylesheet" href="/src/index.css" />
   </head>
   <body>
     <div id="root"></div>

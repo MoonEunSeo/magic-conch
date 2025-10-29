@@ -60,13 +60,16 @@ function App() {
     // 1초 뒤 줄이 다시 원위치로 복귀
     setTimeout(() => setIsPulled(false), 1000);
 
+    // 🌍 환경에 따라 백엔드 주소 자동 선택
+    const API_BASE_URL =
+      import.meta.env.VITE_API_URL || "http://localhost:4000";
+
     // 🧠 AI 응답 요청
-    const res = await fetch("http://localhost:4000/ask", {
+    const res = await fetch(`${API_BASE_URL}/ask`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ question }),
     });
-
     const data = await res.json();
     setAnswer(data.answer);
     setThinking(false);

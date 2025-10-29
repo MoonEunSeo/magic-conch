@@ -9,22 +9,21 @@ import saveRouter from "./routes/save.js";
 dotenv.config();
 const app = express();
 
-
-// CORS 설정
-app.use(cors({
-    origin: process.env.CLIENT_URL || "*", // 필요 시 클라이언트 주소 지정
-    credentials: true,
-  }));
-
-
-//json 파싱 미들웨어 적용
+// ✅ JSON 파싱, CORS
 app.use(express.json());
+app.use(cors());
 
-// 라우트 연결
+// ✅ 라우트 연결 (정적 파일보다 위에)
 app.use("/ask", askRouter);
 app.use("/save", saveRouter);
 
+// ✅ 마지막에 정적 파일 서빙
+const __dirname = path.resolve();
+app.use(express.static(path.join(__dirname, "client/dist")));
 
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "client/dist", "index.html"));
+});
 
 // 서버 실행
 const PORT = process.env.PORT || 4000;

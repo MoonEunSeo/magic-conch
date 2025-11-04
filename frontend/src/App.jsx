@@ -61,6 +61,13 @@ function App() {
     // 1초 뒤 줄이 다시 원위치로 복귀
     setTimeout(() => setIsPulled(false), 1000);
 
+
+    // 스폰지밥 효과 (3초간만 적용)
+    if (question.includes("스폰지밥")) {
+      setBgImage(background_sponge);
+      setTimeout(() => setBgImage(background), 3000); // 3초 뒤 원래 배경 복귀
+    }
+
     // 환경에 따라 백엔드 주소 자동 선택
     const API_BASE_URL =
       import.meta.env.VITE_API_URL || "http://localhost:4000";
@@ -78,24 +85,16 @@ function App() {
     setTimeout(() => setShowButtons(true), 2000);
   };
 
-  // +) 추가 "스폰지밥" 입력 시 배경 변경
-  useEffect(() => {
-    if (question.includes("스폰지밥")) {
-      setBgImage(background_sponge);
-      setTimeout(() => setBgImage(background), 3000);
-    } else {
-      setBgImage(background); // 기본 배경 복귀
-    }
-  }, [question]);
-
   return (
     <div
       className="app"
       style={{
         backgroundImage: `url(${bgImage})`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        transition: "background-image 1s ease-in-out"
+        backgroundRepeat: "no-repeat",
+        backgroundSize: bgImage === background_sponge ? "contain" : "cover", //조건적으로 크기 조정
+        backgroundColor: "#10003c", //여백 채움용
+        backgroundPosition: "center center",
+        transition: "background-image 0.8s ease-in-out",
       }}
     >
       <BubbleBackground />

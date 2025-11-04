@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { motion, animate } from "framer-motion";
 import "./App.css";
-
 import conchFull from "./assets/conch_full.svg";
 import conchErase from "./assets/conch_erase.svg";
 import lineSvg from "./assets/line.svg";
@@ -33,7 +32,7 @@ function BubbleBackground() {
       container.appendChild(bubble);
     }
 
-    // ✅ cleanup: 중복 방지
+    // cleanup: 중복 방지
     return () => {
       container.innerHTML = "";
     };
@@ -48,7 +47,8 @@ function App() {
   const [answer, setAnswer] = useState("");
   const [thinking, setThinking] = useState(false);
   const [showButtons, setShowButtons] = useState(false);
-  const [isPulled, setIsPulled] = useState(false); // ✅ 줄이 당겨졌는지 여부
+  const [isPulled, setIsPulled] = useState(false); // 줄이 당겨졌는지 여부
+  const [bgImage, setBgImage] = useState(background); //배경 
 
   const handlePull = async () => {
     if (!question.trim()) return;
@@ -60,21 +60,31 @@ function App() {
     // 1초 뒤 줄이 다시 원위치로 복귀
     setTimeout(() => setIsPulled(false), 1000);
 
-    // 🌍 환경에 따라 백엔드 주소 자동 선택
+    // 환경에 따라 백엔드 주소 자동 선택
     const API_BASE_URL =
       import.meta.env.VITE_API_URL || "http://localhost:4000";
 
-    // 🧠 AI 응답 요청
+    // AI 응답 요청
     const res = await fetch(`${API_BASE_URL}/ask`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ question }),
     });
+    
     const data = await res.json();
     setAnswer(data.answer);
     setThinking(false);
     setTimeout(() => setShowButtons(true), 2000);
   };
+
+  // +) 추가 "스폰지밥" 입력 시 배경 변경
+  useEffect(() => {
+    if (question.includes("스폰지밥")) {
+      setBgImage("./assets/spongebob-bg.svg"); // 스폰지밥 배경으로 바뀜
+    } else {
+      setBgImage(background); // 기본 배경 복귀
+    }
+  }, [question]);
 
   return (
     <div className="app" style={{ backgroundImage: `url(${background})` }}>
@@ -86,11 +96,11 @@ function App() {
           <motion.img
           src={lineSvg}
           className="line"
-          drag="y"                            // ✅ 세로로 드래그 가능
-          dragConstraints={{ top: 0, bottom: 120 }} // ✅ 드래그 가능한 거리
-          dragElastic={0.6}                   // ✅ 당겼을 때 탄성감
-          whileTap={{ scale: 1.90 }}          // ✅ 손으로 잡은 듯한 반응
-          onDragEnd={handlePull}              // ✅ 드래그 끝나면 AI 호출
+          drag="y"                            // 세로로 드래그 가능
+          dragConstraints={{ top: 0, bottom: 120 }} // 드래그 가능한 거리
+          dragElastic={0.6}                   // 당겼을 때 탄성감
+          whileTap={{ scale: 1.90 }}          // 손으로 잡은 듯한 반응
+          onDragEnd={handlePull}              // 드래그 끝나면 AI 호출
           animate={{
             top: isPulled ? "19%" : "25%",
             left: isPulled ? "70%" : "30%",

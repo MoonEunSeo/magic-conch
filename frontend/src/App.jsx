@@ -9,6 +9,8 @@ import saveButton from "./assets/save_button.svg";
 import background from "./assets/background.svg";
 import searchbar from "./assets/searchbar.svg";
 import background_sponge from "./assets/spongebob-bg.svg"
+import shareButton from "./assets/share-button.svg";
+import html2canvas from "html2canvas";
 import { useEffect, useRef } from "react";
 
 function BubbleBackground() {
@@ -51,6 +53,32 @@ function App() {
   const [isPulled, setIsPulled] = useState(false); // 줄이 당겨졌는지 여부
   const [bgImage, setBgImage] = useState(background); //배경 
 
+  // 📸 저장 기능
+  const handleSave = async () => {
+    const card = document.getElementById("result-card");
+    const canvas = await html2canvas(card, {
+      useCORS: true,
+      scale: 2,
+    });
+    const image = canvas.toDataURL("image/png");
+
+    const link = document.createElement("a");
+    link.href = image;
+    link.download = "magic-conch-result.png";
+    link.click();
+  };
+
+
+
+  // 카카오 SDK 초기화
+  useEffect(() => {
+    if (window.Kakao && !window.Kakao.isInitialized()) {
+      window.Kakao.init(import.meta.env.VITE_KAKAO_JAVASCRIPT_KEY);
+      console.log("Kakao SDK initialized");
+    }
+  }, []);
+
+
   const handlePull = async () => {
     if (!question.trim()) return;
     setIsPulled(true);
@@ -85,13 +113,41 @@ function App() {
     setTimeout(() => setShowButtons(true), 2000);
   };
 
+    // 카카오톡 공유 기능
+    const handleShare = () => {
+      if (!window.Kakao) return;
+  
+      window.Kakao.Share.sendDefault({
+        objectType: "feed",
+        content: {
+          title: "🐚 마법의 소라고동이 이렇게 답했어요!",
+          description: `“${question}”\n💬 ${answer}`,
+          imageUrl: "https://magic-conch.vercel.app/conch-thumbnail.png", // 썸네일 이미지 (선택)
+          link: {
+            mobileWebUrl: "https://magic-conch.vercel.app",
+            webUrl: "https://magic-conch.vercel.app",
+          },
+        },
+        buttons: [
+          {
+            title: "🐚 나도 물어보기",
+            link: {
+              mobileWebUrl: "https://magic-conch.vercel.app",
+              webUrl: "https://magic-conch.vercel.app",
+            },
+          },
+        ],
+      });
+    };
+  
+
   return (
     <div
       className="app"
       style={{
         backgroundImage: `url(${bgImage})`,
         backgroundRepeat: "no-repeat",
-        backgroundSize: bgImage === background_sponge ? "contain" : "cover", //조건적으로 크기 조정
+        backgroundSize: "cover",
         backgroundColor: "#10003c", //여백 채움용
         backgroundPosition: "center center",
         transition: "background-image 0.8s ease-in-out",
@@ -154,8 +210,22 @@ function App() {
           <img
             src={saveButton}
             className="action-button"
-            onClick={() => alert("저장되었습니다! (임시)") }
+            onClick={handleSave}
           />
+          <img
+            src={shareButton}
+            className="action-button"
+            onClick={handleShare} 
+          />
+        </div>
+      )}
+
+      {/* ✅ 캡처용 카드 */}
+      {answer && (
+        <div id="result-card" className="result-card">
+          <img src="/download_graph.png" className="result-bg" alt="background" />
+          <div className="question-text">{question}</div>
+          <div className="answer-text">{answer}</div>
         </div>
       )}
 

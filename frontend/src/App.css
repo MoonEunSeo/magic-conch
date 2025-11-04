@@ -21,6 +21,8 @@
   background-position: center;
   overflow: hidden;
   font-family: "Paperlogy-4", sans-serif;
+  background-attachment: fixed;
+  will-change: background-image;
 }
 
 /* 🌊 둥둥 떠다니는 애니메이션 */
@@ -156,8 +158,8 @@
   z-index: 2;
 }
 .question-input::placeholder {
-  color: rgba(0, 0, 0, 0.45);
-  font-size: 0.95em;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 1.0em;
 }
 
 
@@ -349,4 +351,45 @@ footer {
   footer {
     font-size: 11px;
   }
+}
+.result-card {
+  position: relative;
+  width: 800px;
+  height: 500px;
+  border-radius: 12px;
+  overflow: hidden;
+  margin: 40px auto;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.result-bg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  position: absolute;
+  z-index: 1;
+}
+
+.question-text {
+  position: absolute;
+  top: 60px;
+  width: 100%;
+  text-align: center;
+  font-size: 1.8em;
+  color: #ffffff;
+  font-weight: 600;
+  z-index: 2;
+  text-shadow: 0 3px 6px rgba(0, 0, 0, 0.4);
+}
+
+.answer-text {
+  position: absolute;
+  bottom: 70px;
+  width: 100%;
+  text-align: center;
+  font-size: 2em;
+  color: #FFE699;
+  font-weight: 700;
+  z-index: 2;
+  text-shadow: 0 3px 6px rgba(0, 0, 0, 0.4);
 }

@@ -8,6 +8,7 @@ import reloadButton from "./assets/reload_button.svg";
 import saveButton from "./assets/save_button.svg";
 import background from "./assets/background.svg";
 import searchbar from "./assets/searchbar.svg";
+import background_sponge from "./assets/spongebob-bg.svg"
 import { useEffect, useRef } from "react";
 
 function BubbleBackground() {
@@ -80,14 +81,23 @@ function App() {
   // +) 추가 "스폰지밥" 입력 시 배경 변경
   useEffect(() => {
     if (question.includes("스폰지밥")) {
-      setBgImage("./assets/spongebob-bg.svg"); // 스폰지밥 배경으로 바뀜
+      setBgImage(background_sponge);
+      setTimeout(() => setBgImage(background), 3000);
     } else {
       setBgImage(background); // 기본 배경 복귀
     }
   }, [question]);
 
   return (
-    <div className="app" style={{ backgroundImage: `url(${background})` }}>
+    <div
+      className="app"
+      style={{
+        backgroundImage: `url(${bgImage})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        transition: "background-image 1s ease-in-out"
+      }}
+    >
       <BubbleBackground />
       <div className="conch-wrapper">
         <img src={conchFull} className="conch-full" />

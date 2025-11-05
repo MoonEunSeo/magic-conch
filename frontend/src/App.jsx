@@ -58,6 +58,17 @@ function App() {
   const [bgImage, setBgImage] = useState(background);
   const [shareOpen, setShareOpen] = useState(false);
 
+  
+  // 🪄 UUID 상태 (브라우저 렌더 후에만 생성)
+  const [userId, setUserId] = useState(null);
+
+  useEffect(() => {
+    const uuid = getOrCreateUserUUID();
+    console.log("✅ UUID initialized:", uuid);
+    setUserId(uuid);
+  }, []);
+
+
   // 🟡 카카오 SDK 초기화
   useEffect(() => {
     if (window.Kakao && !window.Kakao.isInitialized()) {
@@ -68,44 +79,43 @@ function App() {
 
   const handlePull = async () => {
     if (!question.trim()) return;
+    if (!userId) {
+      console.warn("⚠️ 아직 UUID가 초기화되지 않았습니다.");
+      return;
+    }
     setIsPulled(true);
     setThinking(true);
     setAnswer("");
     setShowButtons(false);
-  
-    // ✅ UUID 생성 및 로그 출력
-    const user_id = getOrCreateUserUUID();
-    console.log("🪄 generated user_id:", user_id);
-  
+
+    console.log("🪄 generated user_id:", userId);
+
     setTimeout(() => setIsPulled(false), 1000);
-  
-    // 🧽 스폰지밥 효과
+
     if (question.includes("스폰지밥")) {
       setBgImage(background_sponge);
       setTimeout(() => setBgImage(background), 3000);
     }
-  
+
     const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
-  
+
     try {
       const response = await fetch(`${API_BASE_URL}/ask`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         mode: "cors",
-        // ✅ user_id 강제 fallback 포함
-        body: JSON.stringify({ question, user_id: user_id || "anonymous" }),
+        body: JSON.stringify({ question, user_id: userId }),
       });
-  
+
       if (!response.ok) {
         setThinking(false);
         setAnswer("⚠️ 소라고동이 말을 거부했어요..");
         return;
       }
-  
-      // ✨ 응답 처리
+
       const data = await response.json();
       const finalAnswer = data.answer || "🐚 ...아직 말이 없네요.";
-  
+
       let i = 0;
       const typingInterval = setInterval(() => {
         setAnswer((prev) => prev + finalAnswer[i]);
@@ -123,21 +133,25 @@ function App() {
     }
   };
 
+
   async function logShareToServer(question, answer, platform) {
-    const user_id = getOrCreateUserUUID();
+    if (!userId) {
+      console.warn("⚠️ UUID가 아직 없습니다. 로그 전송 생략.");
+      return;
+    }
     const API_BASE_URL = import.meta.env.VITE_API_URL;
-  
+
     try {
       await fetch(`${API_BASE_URL}/share`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ user_id, question, answer, platform }),
+        body: JSON.stringify({ user_id: userId, question, answer, platform }),
       });
     } catch (err) {
       console.warn("⚠️ 공유 로그 저장 실패:", err);
     }
   }
-
+  
   return (
     <div
       className="app"

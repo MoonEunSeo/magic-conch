@@ -16,7 +16,7 @@ const posthog = new PostHog(process.env.POSTHOG_API_KEY, {
 router.post("/", async (req, res) => {
   const { question, user_id, platform = "web", sentiment } = req.body || {};
 
-  console.log("🧭 user_id received:", user_id);
+  console.log("🧭 user_id received:", typeof user_id, user_id);
   console.log("📩 full body:", req.body);
 
   if (!question?.trim()) {

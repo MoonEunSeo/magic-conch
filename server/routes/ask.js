@@ -3,6 +3,7 @@ import fetch from "node-fetch";
 import { supabase } from "../utils/supabase.js";
 import { PostHog } from "posthog-node";
 import { promptTemplate } from "../utils/prompt.js";
+import AbortController from "abort-controller";
 
 const router = express.Router();
 
@@ -12,14 +13,18 @@ const posthog = new PostHog(process.env.POSTHOG_API_KEY, {
 });
 
 router.post("/", async (req, res) => {
-  const { question, user_id, platform = "web" } = req.body;
+  const { question, user_id, platform = "web" } = req.body || {};
 
   if (!question || question.trim() === "") {
     return res.status(400).json({ error: "질문이 비어 있어요." });
   }
 
   const prompt = promptTemplate(question);
-  const start = Date.now(); // ⚡ 응답 시간 측정 시작
+  const start = Date.now();
+
+  // ⏱️ 요청 타임아웃 (15초)
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 15000);
 
   try {
     // ⚙️ Groq API 호출
@@ -38,12 +43,24 @@ router.post("/", async (req, res) => {
         temperature: 0.1,
         max_tokens: 40,
       }),
+      signal: controller.signal,
     });
 
-    const data = await response.json();
+    clearTimeout(timeout);
+
+    // ✅ 응답 JSON 파싱 안전하게 처리
+    let data;
+    try {
+      data = await response.json();
+    } catch {
+      const text = await response.text();
+      console.error("⚠️ Groq 응답이 JSON이 아닙니다:", text.slice(0, 200));
+      return res.status(502).json({ error: "Groq API 응답 형식 오류" });
+    }
 
     if (!response.ok || !data?.choices?.length) {
-      throw new Error("Groq API 응답 오류");
+      console.error("⚠️ Groq API 응답 오류:", data);
+      return res.status(502).json({ error: "소라고동이 대답을 망설였어요." });
     }
 
     const answer = data.choices[0].message.content.trim();
@@ -52,17 +69,21 @@ router.post("/", async (req, res) => {
     // 💾 Supabase 로그 저장
     const { error: dbError } = await supabase
       .from("questions_log")
-      .insert([{ 
-        question, 
-        answer, 
-        response_time_ms: responseTime, 
-        user_id,
-        platform 
-      }]);
+      .insert([
+        {
+          question,
+          answer,
+          response_time_ms: responseTime,
+          user_id,
+          platform,
+        },
+      ]);
 
-    if (dbError) console.error("🔥 Supabase insert error:", dbError.message);
+    if (dbError) {
+      console.warn("⚠️ Supabase insert 실패:", dbError.message);
+    }
 
-    // 📊 PostHog 이벤트 기록
+    // 📊 PostHog 이벤트
     posthog.capture({
       distinctId: user_id || "anonymous",
       event: "ask_question",
@@ -75,9 +96,19 @@ router.post("/", async (req, res) => {
 
     console.log(`✨ 질문: ${question} → 대답: ${answer} (${responseTime}ms)`);
 
-    return res.json({ question, answer, responseTime });
-  } catch (error) {
-    console.error("🔥 ask API error:", error);
+    return res.status(200).json({ question, answer, responseTime });
+  } catch (err) {
+    clearTimeout(timeout);
+
+    // 🧩 네트워크 or 타임아웃 구분 처리
+    if (err.name === "AbortError") {
+      console.error("⏰ Groq API 타임아웃:", err);
+      return res
+        .status(504)
+        .json({ error: "응답이 너무 느려요. 잠시 후 다시 시도해주세요." });
+    }
+
+    console.error("🔥 ask API error:", err);
     return res.status(500).json({ error: "소라고동이 말을 거부했어요.. 😭" });
   }
 });

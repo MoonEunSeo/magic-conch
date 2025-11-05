@@ -6,6 +6,7 @@
       "moduleResolution": "Node",
       "strict": false,
       "jsx": "react-jsx",
+      "checkJs": false,  // ts로 만들어져서 js타입 검사 비활성화
       "allowJs": true,
       "isolatedModules": true,
       "esModuleInterop": true,

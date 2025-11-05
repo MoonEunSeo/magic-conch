@@ -10,8 +10,18 @@ import background from "./assets/background.svg";
 import searchbar from "./assets/searchbar.svg";
 import background_sponge from "./assets/spongebob-bg.svg"
 import shareButton from "./assets/share-button.svg";
+import ShareModal from "./components/ShareModal";
 import html2canvas from "html2canvas";
+
 import { useEffect, useRef } from "react";
+
+import {
+  shareToDiscord,
+  shareToKakao,
+  shareToInstagram,
+  shareToSMS,
+} from "./utils/share";
+
 
 function BubbleBackground() {
   const containerRef = useRef(null); // ✅ DOM 참조 생성
@@ -52,6 +62,7 @@ function App() {
   const [showButtons, setShowButtons] = useState(false);
   const [isPulled, setIsPulled] = useState(false); // 줄이 당겨졌는지 여부
   const [bgImage, setBgImage] = useState(background); //배경 
+  const [shareOpen, setShareOpen] = useState(false);
 
   // 📸 저장 기능
   const handleSave = async () => {
@@ -68,15 +79,15 @@ function App() {
     link.click();
   };
 
-
-
   // 카카오 SDK 초기화
   useEffect(() => {
     if (window.Kakao && !window.Kakao.isInitialized()) {
       window.Kakao.init(import.meta.env.VITE_KAKAO_JAVASCRIPT_KEY);
       console.log("Kakao SDK initialized");
+      
     }
   }, []);
+
 
 
   const handlePull = async () => {
@@ -111,35 +122,9 @@ function App() {
     setAnswer(data.answer);
     setThinking(false);
     setTimeout(() => setShowButtons(true), 2000);
+    
   };
 
-    // 카카오톡 공유 기능
-    const handleShare = () => {
-      if (!window.Kakao) return;
-  
-      window.Kakao.Share.sendDefault({
-        objectType: "feed",
-        content: {
-          title: "🐚 마법의 소라고동이 이렇게 답했어요!",
-          description: `“${question}”\n💬 ${answer}`,
-          imageUrl: "https://magic-conch.vercel.app/conch-thumbnail.png", // 썸네일 이미지 (선택)
-          link: {
-            mobileWebUrl: "https://magic-conch.vercel.app",
-            webUrl: "https://magic-conch.vercel.app",
-          },
-        },
-        buttons: [
-          {
-            title: "🐚 나도 물어보기",
-            link: {
-              mobileWebUrl: "https://magic-conch.vercel.app",
-              webUrl: "https://magic-conch.vercel.app",
-            },
-          },
-        ],
-      });
-    };
-  
 
   return (
     <div
@@ -196,7 +181,7 @@ function App() {
         {!thinking && answer && <p>{answer}</p>}
       </div>
 
-      {showButtons && (
+            {showButtons && (
         <div className="button-area">
           <img
             src={reloadButton}
@@ -215,10 +200,24 @@ function App() {
           <img
             src={shareButton}
             className="action-button"
-            onClick={handleShare} 
+            onClick={() => setShareOpen(true)}
           />
         </div>
       )}
+
+      {/* 공유 모달 추가 */}
+      <ShareModal
+        isOpen={shareOpen}
+        onClose={() => setShareOpen(false)}
+        onSelect={(type) => {
+          const payload = { question, answer };
+          if (type === "kakao") shareToKakao(payload);
+          else if (type === "discord") shareToDiscord(payload);
+          else if (type === "insta") shareToInstagram(payload);
+          else if (type === "sms") shareToSMS(payload);
+          setShareOpen(false);
+        }}
+      />
 
       {/* ✅ 캡처용 카드 */}
       {answer && (

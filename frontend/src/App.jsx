@@ -64,20 +64,42 @@ function App() {
   const [bgImage, setBgImage] = useState(background); //배경 
   const [shareOpen, setShareOpen] = useState(false);
 
-  // 📸 저장 기능
-  const handleSave = async () => {
-    const card = document.getElementById("result-card");
-    const canvas = await html2canvas(card, {
-      useCORS: true,
-      scale: 2,
-    });
-    const image = canvas.toDataURL("image/png");
+// 📸 저장 기능 (1824×1237 고정 버전)
+const handleSave = async () => {
+  const original = document.getElementById("result-card");
+  if (!original) return;
 
-    const link = document.createElement("a");
-    link.href = image;
-    link.download = "magic-conch-result.png";
-    link.click();
-  };
+  // ✅ 캡처용 복제 DOM 생성
+  const temp = original.cloneNode(true);
+  temp.style.width = "1824px";
+  temp.style.height = "1237px";
+  temp.style.position = "absolute";
+  temp.style.left = "-9999px"; // 화면에 보이지 않게 숨김
+  temp.style.transform = "none"; // 스케일 영향 제거
+  temp.style.fontSize = "40px"; // 폰트 고정
+  temp.style.lineHeight = "1.4";
+  temp.style.backgroundSize = "cover";
+  temp.style.backgroundPosition = "center";
+  temp.style.overflow = "hidden";
+
+  document.body.appendChild(temp);
+
+  // ✅ html2canvas 실행 (해상도 고정 + 고품질)
+  const canvas = await html2canvas(temp, {
+    useCORS: true,
+    width: 1824,
+    height: 1237,
+    scale: 2, // 해상도 두 배로 렌더링해서 선명하게
+  });
+
+  const image = canvas.toDataURL("image/png");
+  const link = document.createElement("a");
+  link.href = image;
+  link.download = "magic-conch-result.png";
+  link.click();
+
+  document.body.removeChild(temp);
+};
 
   // 카카오 SDK 초기화
   useEffect(() => {

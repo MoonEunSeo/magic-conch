@@ -396,3 +396,30 @@ footer {
   z-index: 2;
   text-shadow: 0 3px 6px rgba(0, 0, 0, 0.4);
 }
+
+#result-card {
+  width: 1824px;
+  height: 1237px;
+  position: relative;
+  background: url("/download_graph.png") no-repeat center / cover;
+  font-family: "Gowun Dodum", sans-serif;
+}
+
+#result-card .question-text {
+  position: absolute;
+  top: 320px;
+  left: 180px;
+  font-size: 48px;
+  color: #fff;
+  width: 1500px;
+}
+
+#result-card .answer-text {
+  position: absolute;
+  top: 680px;
+  left: 180px;
+  font-size: 42px;
+  color: #ffd;
+  width: 1500px;
+  line-height: 1.5;
+}

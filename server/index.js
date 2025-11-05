@@ -39,7 +39,7 @@ app.use(
 app.use(express.json());
 
 // ✅ 라우터 연결 (순서 중요)
-app.use("/", askRouter);  // /ask → 질문/응답 처리
+app.use("/ask", askRouter);  // /ask → 질문/응답 처리
 app.use("/save", saveRouter); // /save → 결과 저장용 (이미지 등)
 
 // ✅ 헬스체크용 기본 라우트

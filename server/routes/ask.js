@@ -12,8 +12,8 @@ const posthog = new PostHog(process.env.POSTHOG_API_KEY, {
   host: "https://app.posthog.com",
 });
 
-// 🧠 메인 라우터: /ask
-router.post("/ask", async (req, res) => {
+
+router.post("/", async (req, res) => {
   const { question, user_id, platform = "web", sentiment } = req.body || {};
 
   console.log("🧭 user_id received:", user_id);
@@ -25,14 +25,12 @@ router.post("/ask", async (req, res) => {
 
   const prompt = promptTemplate(question);
   const start = Date.now();
-  let fullAnswer = "";
 
   try {
-    // 🧩 Groq API 요청 (스트리밍 모드)
     const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${process.env.GROQ_API_KEY}`,
+        Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
@@ -43,16 +41,17 @@ router.post("/ask", async (req, res) => {
         ],
         temperature: 0.1,
         max_tokens: 30,
-        stream: false, //스트리밍 안써 
       }),
     });
 
-    if (!response.ok || !response.body) {
+    if (!response.ok) {
       console.error("Groq API Error:", await response.text());
       return res.status(502).json({ error: "Groq API 오류 발생" });
     }
+//  응답 파싱
+    const data = await response.json();
+    const fullAnswer = data.choices?.[0]?.message?.content?.trim() || "🐚 ...아직 말이 없네요.";
 
-    // 📊 응답시간 계산
     const responseTime = Date.now() - start;
 
     // 💾 Supabase 저장
@@ -71,7 +70,7 @@ router.post("/ask", async (req, res) => {
       console.warn("⚠️ Supabase insert 실패:", dbError.message);
     }
 
-    // 📈 PostHog 이벤트 전송
+    // 📊 PostHog 로깅
     posthog.capture({
       distinctId: user_id || "anonymous",
       event: "ask_question",
@@ -82,14 +81,13 @@ router.post("/ask", async (req, res) => {
       },
     });
 
-    console.log(`✨ ${question} → ${fullAnswer}`);
-
-    // ✅ 단일 JSON 응답
+    console.log(`✨ 질문: ${question} → 대답: ${fullAnswer} (${responseTime}ms)`);
     res.status(200).json({ answer: fullAnswer });
   } catch (err) {
     console.error("🔥 API Error:", err);
     res.status(500).json({ error: "응답 생성 중 오류가 발생했습니다." });
   }
 });
+
 
 export default router;

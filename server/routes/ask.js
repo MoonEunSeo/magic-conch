@@ -16,6 +16,9 @@ const posthog = new PostHog(process.env.POSTHOG_API_KEY, {
 router.post("/ask", async (req, res) => {
   const { question, user_id, platform = "web", sentiment } = req.body || {};
 
+  console.log("🧭 user_id received:", user_id);
+  console.log("📩 full body:", req.body);
+
   if (!question?.trim()) {
     return res.status(400).json({ error: "질문이 비어 있어요." });
   }
@@ -40,53 +43,13 @@ router.post("/ask", async (req, res) => {
         ],
         temperature: 0.1,
         max_tokens: 30,
-        stream: true, 
+        stream: false, //스트리밍 안써 
       }),
     });
 
     if (!response.ok || !response.body) {
       console.error("Groq API Error:", await response.text());
       return res.status(502).json({ error: "Groq API 오류 발생" });
-    }
-
-    // ⚙️ SSE (Server-Sent Events) 헤더 세팅
-    res.setHeader("Content-Type", "text/event-stream; charset=utf-8");
-    res.setHeader("Cache-Control", "no-cache");
-    res.setHeader("Connection", "keep-alive");
-    res.flushHeaders?.(); // 일부 환경에서 스트림 활성화 강제
-
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder("utf-8");
-
-    // 🔁 스트리밍 루프
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      const chunk = decoder.decode(value);
-      const lines = chunk.split("\n").filter((line) => line.trim() !== "");
-
-      for (const line of lines) {
-        if (!line.startsWith("data:")) continue;
-        const jsonStr = line.replace("data:", "").trim();
-        if (jsonStr === "[DONE]") {
-          res.write(`event: done\ndata: ${JSON.stringify({ done: true })}\n\n`);
-          res.end();
-          //break; while 루프로 중복가능성 있음
-          return; // 전체함수 즉시 종료
-        }
-
-        try {
-          const parsed = JSON.parse(jsonStr);
-          const token = parsed?.choices?.[0]?.delta?.content;
-          if (token) {
-            fullAnswer += token;
-            // 🪄 클라이언트로 토큰 전송
-            res.write(`event: message\ndata: ${JSON.stringify({ token })}\n\n`);
-          }
-        } catch (e) {
-          console.warn("⚠️ 스트림 파싱 실패:", e.message);
-        }
-      }
     }
 
     // 📊 응답시간 계산
@@ -96,7 +59,7 @@ router.post("/ask", async (req, res) => {
     const { error: dbError } = await supabase.from("questions_log").insert([
       {
         question,
-        answer: fullAnswer.trim(),
+        answer: fullAnswer,
         response_time_ms: responseTime,
         user_id,
         platform,
@@ -120,15 +83,12 @@ router.post("/ask", async (req, res) => {
     });
 
     console.log(`✨ ${question} → ${fullAnswer}`);
+
+    // ✅ 단일 JSON 응답
+    res.status(200).json({ answer: fullAnswer });
   } catch (err) {
-    console.error("🔥 Streaming error:", err);
-    try {
-      res.write(`event: error\ndata: ${JSON.stringify({ error: "스트리밍 중 오류 발생" })}\n\n`);
-      res.end();
-    } catch {}
-  } finally {
-    // 💨 연결 닫힘 시 안전 종료
-    if (!res.writableEnded) res.end();
+    console.error("🔥 API Error:", err);
+    res.status(500).json({ error: "응답 생성 중 오류가 발생했습니다." });
   }
 });
 

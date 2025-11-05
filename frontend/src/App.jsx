@@ -22,12 +22,11 @@ import {
   shareToInstagram,
   shareToSMS,
 } from "./utils/share";
-import { saveConchImage } from "./utils/saveImage"; // ✅ 새로 추가된 저장 함수
+import { saveConchImage } from "./utils/saveImage";
 
-// 🌊 버블 애니메이션
+// 🌊 버블 배경
 function BubbleBackground() {
   const containerRef = useRef(null);
-
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
@@ -44,11 +43,8 @@ function BubbleBackground() {
       container.appendChild(bubble);
     }
 
-    return () => {
-      container.innerHTML = "";
-    };
+    return () => (container.innerHTML = "");
   }, []);
-
   return <div className="bubble-container" ref={containerRef}></div>;
 }
 
@@ -70,78 +66,110 @@ function App() {
     }
   }, []);
 
-// 🐚 줄 당기기 핸들러 (스트리밍 대응 버전)
-const handlePull = async () => {
-  if (!question.trim()) return;
-  setIsPulled(true);
-  setThinking(true);
-  setAnswer("");
-  setShowButtons(false);
+  // ✨ 타이핑 큐 (부드러운 타이핑 효과)
+  const typingQueue = useRef([]);
+  const typingTimer = useRef(null);
 
-  const user_id = getOrCreateUserUUID();
+  const startTyping = () => {
+    if (typingTimer.current) return;
+    typingTimer.current = setInterval(() => {
+      if (typingQueue.current.length === 0) {
+        clearInterval(typingTimer.current);
+        typingTimer.current = null;
+        return;
+      }
+      const nextChar = typingQueue.current.shift();
+      setAnswer((prev) => prev + nextChar);
+    }, 45); // 글자당 45ms 속도
+  };
 
-  // 1초 뒤 줄 복귀
-  setTimeout(() => setIsPulled(false), 1000);
+  // 🐚 줄 당기기 핸들러
+  const handlePull = async () => {
+    if (!question.trim()) return;
+    setIsPulled(true);
+    setThinking(true);
+    setAnswer("");
+    setShowButtons(false);
 
-  // 🧽 스폰지밥 배경 효과 (3초간)
-  if (question.includes("스폰지밥")) {
-    setBgImage(background_sponge);
-    setTimeout(() => setBgImage(background), 3000);
-  }
+    const user_id = getOrCreateUserUUID();
+    setTimeout(() => setIsPulled(false), 1000);
 
-  const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
-
-  try {
-    const response = await fetch(`${API_BASE_URL}/ask`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ question, user_id }),
-    });
-
-    if (!response.ok) {
-      setThinking(false);
-      setAnswer("⚠️ 소라고동이 말을 거부했어요..");
-      return;
+    // 🧽 스폰지밥 효과
+    if (question.includes("스폰지밥")) {
+      setBgImage(background_sponge);
+      setTimeout(() => setBgImage(background), 3000);
     }
 
-    // ✅ 스트리밍 응답 읽기
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder("utf-8");
-    let buffer = "";
+    const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
 
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
+    try {
+      const response = await fetch(`${API_BASE_URL}/ask`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        mode: "cors",
+        body: JSON.stringify({ question, user_id }),
+      });
 
-      buffer += decoder.decode(value, { stream: true });
-      const parts = buffer.split("\n\n");
-      buffer = parts.pop();
+      if (!response.ok || !response.body) {
+        setThinking(false);
+        setAnswer("⚠️ 소라고동이 말을 거부했어요..");
+        return;
+      }
 
-      for (const part of parts) {
-        if (part.startsWith("data: ")) {
-          try {
-            const payload = JSON.parse(part.replace("data: ", ""));
-            if (payload.token) {
-              typingQueue.push(payload.token);
-              startTyping();
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder("utf-8");
+      let buffer = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const parts = buffer.split("\n\n");
+        buffer = parts.pop();
+
+        for (const part of parts) {
+          if (part.startsWith("data: ")) {
+            try {
+              const payload = JSON.parse(part.replace("data: ", ""));
+              if (payload.token) {
+                typingQueue.current.push(payload.token);
+                startTyping();
+              }
+            } catch {
+              continue; // JSON parse 실패 시 무시
             }
-          } catch (err) {
-            console.warn("⚠️ 스트림 파싱 스킵:", part);
-            continue; // 그냥 넘어감
           }
         }
       }
-    }
 
-    // 🐚 스트리밍 종료 후 버튼 표시
-    setThinking(false);
-    setShowButtons(true);
-  } catch (error) {
-    console.error("🔥 handlePull error:", error);
-    setThinking(false);
-    setAnswer("⚠️ 응답이 지연되고 있어요. 다시 시도해주세요.");
+      setThinking(false);
+      setTimeout(() => setShowButtons(true), 1000); // 1초 후 버튼 표시
+    } catch (err) {
+      console.error("🔥 handlePull error:", err);
+      setThinking(false);
+      setAnswer("⚠️ 응답이 지연되고 있어요. 다시 시도해주세요.");
+
+    } finally {
+      setThinking(false);
+      setTimeout(() => setShowButtons(true), 1000);
+    }
+  };
+
+
+  async function logShareToServer(question, answer, platform) {
+    const user_id = getOrCreateUserUUID();
+    const API_BASE_URL = import.meta.env.VITE_API_URL;
+  
+    try {
+      await fetch(`${API_BASE_URL}/share`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_id, question, answer, platform }),
+      });
+    } catch (err) {
+      console.warn("⚠️ 공유 로그 저장 실패:", err);
+    }
   }
-};
 
   return (
     <div
@@ -160,7 +188,6 @@ const handlePull = async () => {
       {/* 🐚 소라고동 본체 */}
       <div className="conch-wrapper">
         <img src={conchFull} className="conch-full" />
-
         <motion.img
           src={lineSvg}
           className="line"
@@ -173,13 +200,8 @@ const handlePull = async () => {
             top: isPulled ? "19%" : "25%",
             left: isPulled ? "70%" : "30%",
           }}
-          transition={{
-            type: "spring",
-            stiffness: 80,
-            damping: 15,
-          }}
+          transition={{ type: "spring", stiffness: 80, damping: 15 }}
         />
-
         <img src={conchErase} className="conch-erase" />
       </div>
 
@@ -213,7 +235,6 @@ const handlePull = async () => {
               setShowButtons(false);
             }}
           />
-          {/* ✅ 새 저장 방식 적용 */}
           <img
             src={saveButton}
             className="action-button"
@@ -237,11 +258,13 @@ const handlePull = async () => {
           else if (type === "discord") shareToDiscord(payload);
           else if (type === "insta") shareToInstagram(payload);
           else if (type === "sms") shareToSMS(payload);
+
+          await logShareToServer(question, answer, type);
           setShareOpen(false);
         }}
       />
 
-      {/* 결과 카드 (렌더링용) */}
+      {/* 결과 카드 */}
       {answer && (
         <div id="result-card" className="result-card">
           <img src="/download_graph.png" className="result-bg" alt="background" />

@@ -11,6 +11,7 @@ const app = express();
 const allowedOrigins = [
   "http://localhost:5173", // 개발용
   "https://magic-conch.vercel.app", // 배포 프론트 주소
+  "https://magic-conch-omega.vercel.app",
 ];
 
 app.use(
@@ -28,6 +29,8 @@ app.use(
     credentials: false,
   })
 );
+
+app.options("*", cors());
 
 app.use(express.json());
 

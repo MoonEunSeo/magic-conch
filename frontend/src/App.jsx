@@ -121,6 +121,7 @@ function App() {
 
       let i = 0;
       const typingInterval = setInterval(() => {
+        if (finalAnswer[i] === undefined) return; // ✅ undefined 방지
         setAnswer((prev) => prev + finalAnswer[i]);
         i++;
         if (i >= finalAnswer.length) {

@@ -6,6 +6,8 @@ import dotenv from "dotenv";
 // 🧩 라우터 불러오기
 import askRouter from "./routes/ask.js";
 import saveRouter from "./routes/save.js";
+import shareRouter from "./routes/share.js";
+
 
 dotenv.config();
 const app = express();
@@ -41,6 +43,7 @@ app.use(express.json());
 // ✅ 라우터 연결 (순서 중요)
 app.use("/ask", askRouter);  // /ask → 질문/응답 처리
 app.use("/save", saveRouter); // /save → 결과 저장용 (이미지 등)
+app.use("/share", shareRouter);
 
 // ✅ 헬스체크용 기본 라우트
 app.get("/", (req, res) => {

@@ -121,14 +121,14 @@ function App() {
 
       let i = 0;
       const typingInterval = setInterval(() => {
-        if (finalAnswer[i] === undefined) return; // ✅ undefined 방지
-        setAnswer((prev) => prev + finalAnswer[i]);
-        i++;
-        if (i >= finalAnswer.length) {
+        if (!finalAnswer[i]) {
           clearInterval(typingInterval);
           setThinking(false);
           setTimeout(() => setShowButtons(true), 1000);
+          return;
         }
+        setAnswer((prev) => prev + finalAnswer[i]);
+        i++;
       }, 45);
     } catch (err) {
       console.error("🔥 handlePull error:", err);

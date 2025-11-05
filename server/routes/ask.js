@@ -1,6 +1,6 @@
 // routes/ask.js
 import express from "express";
-import fetch from "node-fetch";
+//import fetch from "node-fetch"; - node18이상인 경우 필요없음
 import { supabase } from "../utils/supabase.js";
 import { PostHog } from "posthog-node";
 import { promptTemplate } from "../utils/prompt.js";

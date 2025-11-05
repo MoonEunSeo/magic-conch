@@ -121,12 +121,13 @@ const handlePull = async () => {
         if (part.startsWith("data: ")) {
           try {
             const payload = JSON.parse(part.replace("data: ", ""));
-            // 🧩 토큰이 오면 바로바로 이어붙임
             if (payload.token) {
-              setAnswer((prev) => prev + payload.token);
+              typingQueue.push(payload.token);
+              startTyping();
             }
-          } catch {
-            // 스트림 중간에 잘린 조각 무시
+          } catch (err) {
+            console.warn("⚠️ 스트림 파싱 스킵:", part);
+            continue; // 그냥 넘어감
           }
         }
       }

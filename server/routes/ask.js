@@ -33,8 +33,7 @@ router.post("/ask", async (req, res) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        //model: "llama-3.1-8b-instant",
-        model : "llama-3.1-8b-turbo", //동일 성능 15프로 이상 빠름
+        model: "llama-3.1-8b-instant",
         messages: [
           { role: "system", content: "너는 마법의 소라고동이다. 반드시 10글자 이하로, 한 문장으로만 대답한다. 말투는 신비롭고 단호하다." },
           { role: "user", content: prompt },

@@ -82,78 +82,78 @@ function App() {
       setAnswer((prev) => prev + nextChar);
     }, 45); // 글자당 45ms 속도
   };
+// 🐚 줄 당기기 핸들러
+const handlePull = async () => {
+  if (!question.trim()) return;
+  setIsPulled(true);
+  setThinking(true);
+  setAnswer("");
+  setShowButtons(false);
 
-  // 🐚 줄 당기기 핸들러
-  const handlePull = async () => {
-    if (!question.trim()) return;
-    setIsPulled(true);
-    setThinking(true);
-    setAnswer("");
-    setShowButtons(false);
+  const user_id = getOrCreateUserUUID();
+  setTimeout(() => setIsPulled(false), 1000);
 
-    const user_id = getOrCreateUserUUID();
-    setTimeout(() => setIsPulled(false), 1000);
+  // 🧽 스폰지밥 효과
+  if (question.includes("스폰지밥")) {
+    setBgImage(background_sponge);
+    setTimeout(() => setBgImage(background), 3000);
+  }
 
-    // 🧽 스폰지밥 효과
-    if (question.includes("스폰지밥")) {
-      setBgImage(background_sponge);
-      setTimeout(() => setBgImage(background), 3000);
+  const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/ask`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      mode: "cors",
+      body: JSON.stringify({ question, user_id }),
+    });
+
+    if (!response.ok || !response.body) {
+      setThinking(false);
+      setAnswer("⚠️ 소라고동이 말을 거부했어요..");
+      return;
     }
 
-    const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
+    // ✅ 스트리밍 리더
+    const reader = response.body
+      .pipeThrough(new TextDecoderStream()) // Edge/사파리 버퍼깨짐 방지
+      .getReader();
 
     try {
-      const response = await fetch(`${API_BASE_URL}/ask`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        mode: "cors",
-        body: JSON.stringify({ question, user_id }),
-      });
-
-      if (!response.ok || !response.body) {
-        setThinking(false);
-        setAnswer("⚠️ 소라고동이 말을 거부했어요..");
-        return;
-      }
-
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder("utf-8");
-      let buffer = "";
-
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
-        buffer += decoder.decode(value, { stream: true });
-        const parts = buffer.split("\n\n");
-        buffer = parts.pop();
 
-        for (const part of parts) {
-          if (part.startsWith("data: ")) {
-            try {
-              const payload = JSON.parse(part.replace("data: ", ""));
-              if (payload.token) {
-                typingQueue.current.push(payload.token);
-                startTyping();
-              }
-            } catch {
-              continue; // JSON parse 실패 시 무시
+        // ✅ 줄 단위로 나누고, data: 라인만 추출
+        const lines = value
+          .split(/\r?\n/)
+          .filter((line) => line.trim().startsWith("data: "));
+
+        for (const line of lines) {
+          try {
+            const jsonStr = line.replace(/^data:\s*/, "");
+            const payload = JSON.parse(jsonStr);
+
+            if (payload.token) {
+              typingQueue.current.push(payload.token);
+              startTyping();
             }
+          } catch (e) {
+            console.warn("⚠️ 스트림 파싱 실패:", e.message, line);
           }
         }
       }
-
-      setThinking(false);
-      setTimeout(() => setShowButtons(true), 1000); // 1초 후 버튼 표시
-    } catch (err) {
-      console.error("🔥 handlePull error:", err);
-      setThinking(false);
-      setAnswer("⚠️ 응답이 지연되고 있어요. 다시 시도해주세요.");
-
     } finally {
       setThinking(false);
       setTimeout(() => setShowButtons(true), 1000);
     }
-  };
+  } catch (err) {
+    console.error("🔥 handlePull error:", err);
+    setThinking(false);
+    setAnswer("⚠️ 응답이 지연되고 있어요. 다시 시도해주세요.");
+  }
+};
 
 
   async function logShareToServer(question, answer, platform) {

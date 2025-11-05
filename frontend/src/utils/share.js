@@ -1,26 +1,12 @@
 // utils/share.js
-import html2canvas from "html2canvas";
-
-// 📸 캡처 (이미지를 생성해서 각 플랫폼에 쓸 수 있게)
-export async function captureResultCard() {
-  const card = document.getElementById("result-card");
-  if (!card) return null;
-
-  const canvas = await html2canvas(card, {
-    useCORS: true,
-    scale: 2,
-  });
-  return canvas.toDataURL("image/png");
-}
 
 /** 디스코드 공유 */
 export function shareToDiscord({ question, answer }) {
-    const text = `🐚 마법의 소라고동이 이렇게 말했어요!\n> ${question}\n💬 ${answer}\nhttps://magic-conch.vercel.app`;
-    navigator.clipboard.writeText(text)
-      .then(() => alert("복사 완료! Discord에서 붙여넣기 해보세요 💬"))
-      .catch(() => alert("클립보드 복사 실패 😢"));
-  }
-  
+  const text = `🐚 마법의 소라고동이 이렇게 말했어요!\n> ${question}\n💬 ${answer}\nhttps://magic-conch.vercel.app`;
+  navigator.clipboard.writeText(text)
+    .then(() => alert("복사 완료! Discord에서 붙여넣기 해보세요 💬"))
+    .catch(() => alert("클립보드 복사 실패 😢"));
+}
 
 /** 카카오톡 공유 */
 export function shareToKakao({ question, answer }) {
@@ -53,12 +39,11 @@ export function shareToKakao({ question, answer }) {
 
 /** 🩷 인스타그램 공유 (스토리 전용) */
 export async function shareToInstagram({ question, answer }) {
-    const image = await captureResultCard();
-    if (!image) return alert("이미지를 불러올 수 없습니다.");
-  
-    const blob = await (await fetch(image)).blob();
+  try {
+    const response = await fetch("/download_graph.png"); // 고정된 배경 PNG 불러오기
+    const blob = await response.blob();
     const file = new File([blob], "magic-conch.png", { type: "image/png" });
-  
+
     if (navigator.canShare?.({ files: [file] })) {
       await navigator.share({
         files: [file],
@@ -68,7 +53,11 @@ export async function shareToInstagram({ question, answer }) {
     } else {
       alert("현재 브라우저는 인스타그램 스토리 공유를 지원하지 않아요 😢");
     }
+  } catch (err) {
+    console.error("인스타그램 공유 오류:", err);
+    alert("이미지를 불러올 수 없습니다 😢");
   }
+}
 
 /** 💬 문자메시지 (SMS) */
 export function shareToSMS({ question, answer }) {

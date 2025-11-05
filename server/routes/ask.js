@@ -3,7 +3,6 @@ import fetch from "node-fetch";
 import { supabase } from "../utils/supabase.js";
 import { PostHog } from "posthog-node";
 import { promptTemplate } from "../utils/prompt.js";
-import AbortController from "abort-controller";
 
 const router = express.Router();
 

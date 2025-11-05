@@ -12,6 +12,7 @@ import background from "./assets/background.svg";
 import background_sponge from "./assets/spongebob-bg.svg";
 import searchbar from "./assets/searchbar.svg";
 import shareButton from "./assets/share-button.svg";
+import { getOrCreateUserUUID } from "./utils/uuid";
 
 // 🧩 컴포넌트 & 유틸
 import ShareModal from "./components/ShareModal";
@@ -69,36 +70,77 @@ function App() {
     }
   }, []);
 
-  // 🐚 줄 당기기 핸들러
-  const handlePull = async () => {
-    if (!question.trim()) return;
-    setIsPulled(true);
-    setThinking(true);
-    setAnswer("");
-    setShowButtons(false);
+// 🐚 줄 당기기 핸들러 (스트리밍 대응 버전)
+const handlePull = async () => {
+  if (!question.trim()) return;
+  setIsPulled(true);
+  setThinking(true);
+  setAnswer("");
+  setShowButtons(false);
 
-    setTimeout(() => setIsPulled(false), 1000);
+  const user_id = getOrCreateUserUUID();
 
-    // 스폰지밥 효과 (3초간만 적용)
-    if (question.includes("스폰지밥")) {
-      setBgImage(background_sponge);
-      setTimeout(() => setBgImage(background), 3000);
-    }
+  // 1초 뒤 줄 복귀
+  setTimeout(() => setIsPulled(false), 1000);
 
-    const API_BASE_URL =
-      import.meta.env.VITE_API_URL || "http://localhost:4000";
+  // 🧽 스폰지밥 배경 효과 (3초간)
+  if (question.includes("스폰지밥")) {
+    setBgImage(background_sponge);
+    setTimeout(() => setBgImage(background), 3000);
+  }
 
-    const res = await fetch(`${API_BASE_URL}/ask`, {
+  const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/ask`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ question }),
+      body: JSON.stringify({ question, user_id }),
     });
 
-    const data = await res.json();
-    setAnswer(data.answer);
+    if (!response.ok) {
+      setThinking(false);
+      setAnswer("⚠️ 소라고동이 말을 거부했어요..");
+      return;
+    }
+
+    // ✅ 스트리밍 응답 읽기
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder("utf-8");
+    let buffer = "";
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const parts = buffer.split("\n\n");
+      buffer = parts.pop();
+
+      for (const part of parts) {
+        if (part.startsWith("data: ")) {
+          try {
+            const payload = JSON.parse(part.replace("data: ", ""));
+            // 🧩 토큰이 오면 바로바로 이어붙임
+            if (payload.token) {
+              setAnswer((prev) => prev + payload.token);
+            }
+          } catch {
+            // 스트림 중간에 잘린 조각 무시
+          }
+        }
+      }
+    }
+
+    // 🐚 스트리밍 종료 후 버튼 표시
     setThinking(false);
-    setTimeout(() => setShowButtons(true), 2000);
-  };
+    setShowButtons(true);
+  } catch (error) {
+    console.error("🔥 handlePull error:", error);
+    setThinking(false);
+    setAnswer("⚠️ 응답이 지연되고 있어요. 다시 시도해주세요.");
+  }
+};
 
   return (
     <div

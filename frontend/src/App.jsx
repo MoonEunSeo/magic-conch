@@ -58,16 +58,14 @@ function App() {
   const [bgImage, setBgImage] = useState(background);
   const [shareOpen, setShareOpen] = useState(false);
 
-  
-  // 🪄 UUID 상태 (브라우저 렌더 후에만 생성)
-  const [userId, setUserId] = useState(null);
+  // ✅ UUID (useRef로 즉시 저장)
+  const userIdRef = useRef(null);
 
   useEffect(() => {
     const uuid = getOrCreateUserUUID();
+    userIdRef.current = uuid;
     console.log("✅ UUID initialized:", uuid);
-    setUserId(uuid);
   }, []);
-
 
   // 🟡 카카오 SDK 초기화
   useEffect(() => {
@@ -77,21 +75,25 @@ function App() {
     }
   }, []);
 
+  // 🐚 줄 당기기 핸들러
   const handlePull = async () => {
     if (!question.trim()) return;
-    if (!userId) {
-      console.warn("⚠️ 아직 UUID가 초기화되지 않았습니다.");
+
+    const user_id = userIdRef.current;
+    if (!user_id) {
+      console.warn("⚠️ UUID 아직 준비되지 않음. 요청 중단.");
       return;
     }
+
+    console.log("🪄 generated user_id:", user_id);
+
     setIsPulled(true);
     setThinking(true);
     setAnswer("");
     setShowButtons(false);
-
-    console.log("🪄 generated user_id:", userId);
-
     setTimeout(() => setIsPulled(false), 1000);
 
+    // 🧽 스폰지밥 효과
     if (question.includes("스폰지밥")) {
       setBgImage(background_sponge);
       setTimeout(() => setBgImage(background), 3000);
@@ -104,7 +106,7 @@ function App() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         mode: "cors",
-        body: JSON.stringify({ question, user_id: userId }),
+        body: JSON.stringify({ question, user_id }),
       });
 
       if (!response.ok) {
@@ -113,6 +115,7 @@ function App() {
         return;
       }
 
+      // ✨ 응답 처리
       const data = await response.json();
       const finalAnswer = data.answer || "🐚 ...아직 말이 없네요.";
 
@@ -133,25 +136,28 @@ function App() {
     }
   };
 
-
+  // 🧾 공유 로그 기록
   async function logShareToServer(question, answer, platform) {
-    if (!userId) {
-      console.warn("⚠️ UUID가 아직 없습니다. 로그 전송 생략.");
+    const user_id = userIdRef.current;
+    if (!user_id) {
+      console.warn("⚠️ UUID 없음. 공유 로그 생략.");
       return;
     }
+
     const API_BASE_URL = import.meta.env.VITE_API_URL;
 
     try {
       await fetch(`${API_BASE_URL}/share`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ user_id: userId, question, answer, platform }),
+        body: JSON.stringify({ user_id, question, answer, platform }),
       });
+      console.log(`📤 공유 로그 전송 완료 (${platform})`);
     } catch (err) {
       console.warn("⚠️ 공유 로그 저장 실패:", err);
     }
   }
-  
+
   return (
     <div
       className="app"
@@ -233,7 +239,7 @@ function App() {
       <ShareModal
         isOpen={shareOpen}
         onClose={() => setShareOpen(false)}
-        onSelect={(type) => {
+        onSelect={async (type) => {
           const payload = { question, answer };
           if (type === "kakao") shareToKakao(payload);
           else if (type === "discord") shareToDiscord(payload);

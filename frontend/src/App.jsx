@@ -66,60 +66,62 @@ function App() {
     }
   }, []);
 
-// 🐚 줄 당기기 핸들러 (스트리밍 OFF 버전)
-const handlePull = async () => {
-  if (!question.trim()) return;
-  setIsPulled(true);
-  setThinking(true);
-  setAnswer("");
-  setShowButtons(false);
-
-  const user_id = getOrCreateUserUUID();
-  setTimeout(() => setIsPulled(false), 1000);
-
-  // 🧽 스폰지밥 효과
-  if (question.includes("스폰지밥")) {
-    setBgImage(background_sponge);
-    setTimeout(() => setBgImage(background), 3000);
-  }
-
-  const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
-
-  try {
-    const response = await fetch(`${API_BASE_URL}/ask`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      mode: "cors",
-      body: JSON.stringify({ question, user_id }),
-    });
-
-    if (!response.ok) {
-      setThinking(false);
-      setAnswer("⚠️ 소라고동이 말을 거부했어요..");
-      return;
+  const handlePull = async () => {
+    if (!question.trim()) return;
+    setIsPulled(true);
+    setThinking(true);
+    setAnswer("");
+    setShowButtons(false);
+  
+    // ✅ UUID 생성 및 로그 출력
+    const user_id = getOrCreateUserUUID();
+    console.log("🪄 generated user_id:", user_id);
+  
+    setTimeout(() => setIsPulled(false), 1000);
+  
+    // 🧽 스폰지밥 효과
+    if (question.includes("스폰지밥")) {
+      setBgImage(background_sponge);
+      setTimeout(() => setBgImage(background), 3000);
     }
-
-    // ✨ 한 번에 응답 받기
-    const data = await response.json();
-    const finalAnswer = data.answer || "🐚 ...아직 말이 없네요.";
-
-    // ✨ 부드럽게 타이핑 효과
-    let i = 0;
-    const typingInterval = setInterval(() => {
-      setAnswer((prev) => prev + finalAnswer[i]);
-      i++;
-      if (i >= finalAnswer.length) {
-        clearInterval(typingInterval);
+  
+    const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
+  
+    try {
+      const response = await fetch(`${API_BASE_URL}/ask`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        mode: "cors",
+        // ✅ user_id 강제 fallback 포함
+        body: JSON.stringify({ question, user_id: user_id || "anonymous" }),
+      });
+  
+      if (!response.ok) {
         setThinking(false);
-        setTimeout(() => setShowButtons(true), 1000);
+        setAnswer("⚠️ 소라고동이 말을 거부했어요..");
+        return;
       }
-    }, 45); // 글자당 45ms 속도
-  } catch (err) {
-    console.error("🔥 handlePull error:", err);
-    setThinking(false);
-    setAnswer("⚠️ 응답이 지연되고 있어요. 다시 시도해주세요.");
-  }
-};
+  
+      // ✨ 응답 처리
+      const data = await response.json();
+      const finalAnswer = data.answer || "🐚 ...아직 말이 없네요.";
+  
+      let i = 0;
+      const typingInterval = setInterval(() => {
+        setAnswer((prev) => prev + finalAnswer[i]);
+        i++;
+        if (i >= finalAnswer.length) {
+          clearInterval(typingInterval);
+          setThinking(false);
+          setTimeout(() => setShowButtons(true), 1000);
+        }
+      }, 45);
+    } catch (err) {
+      console.error("🔥 handlePull error:", err);
+      setThinking(false);
+      setAnswer("⚠️ 응답이 지연되고 있어요. 다시 시도해주세요.");
+    }
+  };
 
   async function logShareToServer(question, answer, platform) {
     const user_id = getOrCreateUserUUID();

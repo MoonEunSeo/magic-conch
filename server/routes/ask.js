@@ -39,8 +39,8 @@ router.post("/", async (req, res) => {
           { role: "system", content: "너는 마법의 소라고동이다. 반드시 10글자 이하로, 한 문장으로만 대답한다. 말투는 신비롭고 단호하다." },
           { role: "user", content: prompt },
         ],
-        temperature: 0.1,
-        max_tokens: 30,
+        temperature: 0.4,
+        max_tokens: 50,
       }),
     });
 

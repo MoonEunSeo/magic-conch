@@ -1,40 +1,76 @@
+/* 🔮 모달 배경 (뒷면 반투명 어둡게) */
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.55);
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(4px); /* ✅ 배경 블러 */
   z-index: 9998;
+  animation: fadeIn 0.3s ease-out forwards;
 }
 
+/* 💬 메인 모달 */
 .share-modal {
   position: fixed;
-  top: 50dvh;
+  top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%);
-  background: rgba(255, 255, 255, 0.95);
-  border-radius: 20px;
-  padding: 25px 40px;
+  transform: translate(-50%, -50%) scale(0.95); /* ✅ 살짝 작게 시작 */
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(18px) saturate(150%); /* ✅ 유리창 느낌 */
+  -webkit-backdrop-filter: blur(18px) saturate(150%);
+  border-radius: 22px;
+  padding: 28px 32px;
   text-align: center;
   z-index: 9999;
-  width: 85%;
-  max-width: 400px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+  width: min(85%, 400px);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  animation: modalPop 0.35s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
+/* 💨 모달 등장 애니메이션 */
+@keyframes modalPop {
+  0% {
+    transform: translate(-50%, -50%) scale(0.85);
+    opacity: 0;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+}
+
+/* 💫 배경 페이드인 */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* 모달 제목 */
 .share-modal h3 {
   font-family: "Paperlogy-7", sans-serif;
-  font-size: 1.3em;
+  font-size: 1.4em;
   margin-bottom: 18px;
-  color: #222;
+  color: #fff;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.5);
 }
 
+/* 버튼 컨테이너 */
 .share-buttons {
   display: flex;
   justify-content: center;
-  gap: 18px;
-  flex-wrap: wrap;
-  margin-bottom: 20px;
+  align-items: center;
+  gap: 22px;
+  flex-wrap: nowrap;
+  margin-bottom: 18px;
+  margin-top: 6px;
 }
 
+/* 각 공유 버튼 */
 .share-buttons button {
   display: flex;
   flex-direction: column;
@@ -42,28 +78,37 @@
   background: none;
   border: none;
   cursor: pointer;
-  transition: transform 0.2s ease;
+  transition: transform 0.25s ease, filter 0.25s ease;
 }
-.share-buttons button:hover { transform: scale(1.1); }
+.share-buttons button:hover {
+  transform: translateY(-3px) scale(1.08);
+  filter: brightness(1.2);
+}
 
 .share-buttons img {
-  width: 50px;
-  height: 50px;
+  width: 52px;
+  height: 52px;
   margin-bottom: 6px;
 }
 .share-buttons span {
   font-family: "Paperlogy-4", sans-serif;
   font-size: 0.9em;
-  color: #333;
+  color: rgba(255, 255, 255, 0.85);
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
 }
 
+/* 닫기 버튼 */
 .close-btn {
-  background: #eaeaea;
-  border: none;
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
   border-radius: 8px;
   padding: 6px 14px;
   font-family: "Paperlogy-4", sans-serif;
+  color: rgba(255, 255, 255, 0.95);
   cursor: pointer;
-  transition: background 0.2s ease;
+  transition: all 0.25s ease;
 }
-.close-btn:hover { background: #d6d6d6; }
+.close-btn:hover {
+  background: rgba(255, 255, 255, 0.35);
+  transform: scale(1.05);
+}

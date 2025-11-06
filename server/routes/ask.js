@@ -34,13 +34,16 @@ router.post("/", async (req, res) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "llama-3.1-8b-instant",
+        model: "llama-3.1-70b-versatile",
         messages: [
-          { role: "system", content: "너는 마법의 소라고동이다. 반드시 10글자 이하로, 한 문장으로만 대답한다. 말투는 신비롭고 단호하다." },
+          {
+            role: "system",
+            content: "너는 마법의 소라고동이다. 짧고 신비롭게 대답하지만, 무의미한 말은 하지 않는다. 반드시 10자 이내로 한 문장만 말해라."
+          },
           { role: "user", content: prompt },
         ],
-        temperature: 0.4,
-        max_tokens: 50,
+        temperature: 0.8,
+        max_tokens: 60,
       }),
     });
 

@@ -112,3 +112,28 @@
   background: rgba(255, 255, 255, 0.35);
   transform: scale(1.05);
 }
+
+
+/* 📱 모바일 전용 모달 조정 */
+@media screen and (max-width: 480px) {
+  .share-modal {
+    width: 85vw !important;        /* ✅ 전체 폭의 85%까지만 */
+    max-width: 340px !important;   /* ✅ 상한선 제한 */
+    padding: 22px 26px;            /* ✅ 여백도 살짝 줄임 */
+    border-radius: 18px;
+  }
+
+  .share-buttons img {
+    width: 46px;   /* ✅ 버튼 살짝 축소 */
+    height: 46px;
+  }
+
+  .share-modal h3 {
+    font-size: 1.1em; /* ✅ 제목 크기도 균형 맞춤 */
+  }
+
+  .close-btn {
+    font-size: 0.85em;
+    padding: 5px 12px;
+  }
+}

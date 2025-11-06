@@ -12,14 +12,14 @@ export default function ShareModal({ isOpen, onClose, onSelect }) {
     <AnimatePresence>
       {isOpen && (
         <>
-          <motion.div
-            className="modal-backdrop"
-            onClick={onClose}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 0.6 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
-          />
+        <motion.div
+          className={`modal-backdrop ${isOpen ? "fade-in" : ""}`}
+          onClick={onClose}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 0.6 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.3 }}
+        />
           <motion.div
             className="share-modal"
             initial={{ scale: 0.7, opacity: 0 }}

@@ -5,7 +5,6 @@
   background: rgba(0, 0, 0, 0.45);
   backdrop-filter: blur(4px); /* ✅ 배경 블러 */
   z-index: 9998;
-  animation: fadeIn 0.3s ease-out forwards;
 }
 
 /* 💬 메인 모달 */
@@ -30,6 +29,10 @@
   align-items: center;
   justify-content: center;
   animation: modalPop 0.35s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.fade-in {
+  animation: fadeIn 0.3s ease-out forwards;
 }
 
 /* 💨 모달 등장 애니메이션 */

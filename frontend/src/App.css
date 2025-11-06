@@ -62,7 +62,7 @@
   transform: translateX(-50%);
   width: 90vw;
   max-width: 600px;
-  z-index: 10;
+  z-index: 1000;
 }
 .searchbar {
   width: 100%;
@@ -70,6 +70,7 @@
   z-index: 1;
 }
 .question-input {
+  position: relative;
   width: 90%;
   height: 40px;
   border: none;
@@ -77,10 +78,13 @@
   text-align: center;
   font-family: "Paperlogy-7", sans-serif;
   font-size: 24px;
-  color: #222;
+  color: #fff;
   z-index: 2;
 }
 .question-input::placeholder { color: rgba(255,255,255,0.8); }
+.question-input:focus {
+  outline: none; /* ✅ 포커스 시 파란 테두리 제거 (UX 더 깔끔) */
+}
 
 /* 답변 */
 .answer-area {
@@ -135,6 +139,7 @@ footer {
   left: -30vh;
   width: 140%;
   height: 100%;
+  pointer-events: none !important;
   overflow: hidden;
   z-index: 4;
 }
@@ -142,6 +147,7 @@ footer {
   position: absolute;
   bottom: -25vh;
   border-radius: 48%;
+  pointer-events: auto !important; ;
   animation: rise linear infinite;
   background: radial-gradient(circle at 20% 30%, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.05) 70%);
   border: 1.5px solid rgba(255,255,255,0.9);
@@ -156,4 +162,19 @@ footer {
   .question-input { font-size: 18px; min-width: 250px; }
   .answer-area { font-size: 30px; bottom: 28vh; }
   footer { font-size: 11px; }
+}
+
+@keyframes pop {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+.bubble.pop {
+  animation: pop 0.3s ease-out forwards;
 }

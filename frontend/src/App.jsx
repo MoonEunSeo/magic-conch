@@ -27,6 +27,7 @@ import { saveConchImage } from "./utils/saveImage";
 // 🌊 버블 배경
 function BubbleBackground() {
   const containerRef = useRef(null);
+
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
@@ -40,11 +41,19 @@ function BubbleBackground() {
       bubble.style.left = `${Math.random() * 100}%`;
       bubble.style.animationDuration = `${Math.random() * 15 + 8}s`;
       bubble.style.animationDelay = `${Math.random() * 5}s`;
+
+      // 💥 클릭 시 터지는 효과
+      bubble.addEventListener("click", () => {
+        bubble.classList.add("pop");
+        setTimeout(() => bubble.remove(), 300); // 애니메이션 끝나면 제거
+      });
+
       container.appendChild(bubble);
     }
 
     return () => (container.innerHTML = "");
   }, []);
+
   return <div className="bubble-container" ref={containerRef}></div>;
 }
 

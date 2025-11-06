@@ -115,27 +115,20 @@ function App() {
         return;
       }
 
-      // ✨ 응답 처리
-      const data = await response.json();
-      const finalAnswer = data.answer || "🐚 ...아직 말이 없네요.";
+  // ✨ 응답 처리
+  const data = await response.json();
+  const finalAnswer = data.answer || "🐚 ...아직 말이 없네요.";
 
-      let i = 0;
-      const typingInterval = setInterval(() => {
-        if (!finalAnswer[i]) {
-          clearInterval(typingInterval);
-          setThinking(false);
-          setTimeout(() => setShowButtons(true), 1000);
-          return;
-        }
-        setAnswer((prev) => prev + finalAnswer[i]);
-        i++;
-      }, 45);
-    } catch (err) {
-      console.error("🔥 handlePull error:", err);
-      setThinking(false);
-      setAnswer("⚠️ 응답이 지연되고 있어요. 다시 시도해주세요.");
-    }
-  };
+  // ✅ 한 번에 바로 출력 (타이핑 효과 제거)
+  setAnswer(finalAnswer);
+  setThinking(false);
+  setTimeout(() => setShowButtons(true), 1000);
+      } catch (err) {
+        console.error("🔥 handlePull error:", err);
+        setThinking(false);
+        setAnswer("⚠️ 응답이 지연되고 있어요. 다시 시도해주세요.");
+      }
+    };
 
   // 🧾 공유 로그 기록
   async function logShareToServer(question, answer, platform) {
@@ -160,83 +153,8 @@ function App() {
   }
 
   return (
-    <div
-      className="app"
-      style={{
-        backgroundImage: `url(${bgImage})`,
-        backgroundRepeat: "no-repeat",
-        backgroundSize: "cover",
-        backgroundColor: "#10003c",
-        backgroundPosition: "center center",
-        transition: "background-image 0.8s ease-in-out",
-      }}
-    >
-      <BubbleBackground />
-
-      {/* 🐚 소라고동 본체 */}
-      <div className="conch-wrapper">
-        <img src={conchFull} className="conch-full" />
-        <motion.img
-          src={lineSvg}
-          className="line"
-          drag="y"
-          dragConstraints={{ top: 0, bottom: 120 }}
-          dragElastic={0.6}
-          whileTap={{ scale: 1.9 }}
-          onDragEnd={handlePull}
-          animate={{
-            top: isPulled ? "19%" : "25%",
-            left: isPulled ? "70%" : "30%",
-          }}
-          transition={{ type: "spring", stiffness: 80, damping: 15 }}
-        />
-        <img src={conchErase} className="conch-erase" />
-      </div>
-
-      {/* 입력창 */}
-      <div className="input-section">
-        <img src={searchbar} className="searchbar" />
-        <input
-          type="text"
-          className="question-input"
-          placeholder="질문을 입력하고 줄을 당겨보세요"
-          value={question}
-          onChange={(e) => setQuestion(e.target.value)}
-        />
-      </div>
-
-      {/* 답변 영역 */}
-      <div className="answer-area">
-        {thinking && <p>🐚 소라고동이 생각 중...</p>}
-        {!thinking && answer && <p>{answer}</p>}
-      </div>
-
-      {/* 버튼 영역 */}
-      {showButtons && (
-        <div className="button-area">
-          <img
-            src={reloadButton}
-            className="action-button"
-            onClick={() => {
-              setQuestion("");
-              setAnswer("");
-              setShowButtons(false);
-            }}
-          />
-          <img
-            src={saveButton}
-            className="action-button"
-            onClick={() => saveConchImage(question, answer)}
-          />
-          <img
-            src={shareButton}
-            className="action-button"
-            onClick={() => setShareOpen(true)}
-          />
-        </div>
-      )}
-
-      {/* 공유 모달 */}
+    <>
+      {/* 공유 모달을 .app 밖으로 이동 */}
       <ShareModal
         isOpen={shareOpen}
         onClose={() => setShareOpen(false)}
@@ -246,36 +164,113 @@ function App() {
           else if (type === "discord") shareToDiscord(payload);
           else if (type === "insta") shareToInstagram(payload);
           else if (type === "sms") shareToSMS(payload);
-
+  
           await logShareToServer(question, answer, type);
           setShareOpen(false);
         }}
       />
-
-      {/* 결과 카드 */}
-      {answer && (
-        <div id="result-card" className="result-card">
-          <img src="/download_graph.png" className="result-bg" alt="background" />
-          <div className="question-text">{question}</div>
-          <div className="answer-text">{answer}</div>
+  
+      <div
+        className="app"
+        style={{
+          backgroundImage: `url(${bgImage})`,
+          backgroundRepeat: "no-repeat",
+          backgroundSize: "cover",
+          backgroundColor: "#10003c",
+          backgroundPosition: "center center",
+          transition: "background-image 0.8s ease-in-out",
+        }}
+      >
+        <BubbleBackground />
+  
+        {/* 🐚 소라고동 본체 */}
+        <div className="conch-wrapper">
+          <img src={conchFull} className="conch-full" />
+          <motion.img
+            src={lineSvg}
+            className="line"
+            drag="y"
+            dragConstraints={{ top: 0, bottom: 120 }}
+            dragElastic={0.6}
+            whileTap={{ scale: 1.9 }}
+            onDragEnd={handlePull}
+            animate={{
+              top: isPulled ? "19%" : "25%",
+              left: isPulled ? "70%" : "30%",
+            }}
+            transition={{ type: "spring", stiffness: 80, damping: 15 }}
+          />
+          <img src={conchErase} className="conch-erase" />
         </div>
-      )}
-
-      <footer>
-        본 사이트는 팬이 만든 비상업적 프로젝트이며,<br />
-        Nickelodeon 또는 <em>SpongeBob SquarePants</em>와 무관합니다.<br />
-        © 2025 Norang. All rights reserved. |{" "}
-        <a
-          href="https://telepathy.my"
-          target="_blank"
-          rel="noopener noreferrer"
-          style={{ color: "rgba(255,255,255,0.9)", textDecoration: "underline" }}
-        >
-          텔레파시 바로가기
-        </a>
-      </footer>
-    </div>
+  
+        {/* 입력창 */}
+        <div className="input-section">
+          <img src={searchbar} className="searchbar" />
+          <input
+            type="text"
+            className="question-input"
+            placeholder="질문을 입력하고 줄을 당겨보세요"
+            value={question}
+            onChange={(e) => setQuestion(e.target.value)}
+          />
+        </div>
+  
+        {/* 답변 영역 */}
+        <div className="answer-area">
+          {thinking && <p>🐚 소라고동이 생각 중...</p>}
+          {!thinking && answer && <p>{answer}</p>}
+        </div>
+  
+        {/* 버튼 영역 */}
+        {showButtons && (
+          <div className="button-area">
+            <img
+              src={reloadButton}
+              className="action-button"
+              onClick={() => {
+                setQuestion("");
+                setAnswer("");
+                setShowButtons(false);
+              }}
+            />
+            <img
+              src={saveButton}
+              className="action-button"
+              onClick={() => saveConchImage(question, answer)}
+            />
+            <img
+              src={shareButton}
+              className="action-button"
+              onClick={() => setShareOpen(true)}
+            />
+          </div>
+        )}
+  
+        {/* 결과 카드 */}
+        {answer && (
+          <div id="result-card" className="result-card">
+            <img src="/download_graph.png" className="result-bg" alt="background" />
+            <div className="question-text">{question}</div>
+            <div className="answer-text">{answer}</div>
+          </div>
+        )}
+  
+        <footer>
+          본 사이트는 팬이 만든 비상업적 프로젝트이며,<br />
+          Nickelodeon 또는 <em>SpongeBob SquarePants</em>와 무관합니다.<br />
+          © 2025 Norang. All rights reserved. |{" "}
+          <a
+            href="https://telepathy.my"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ color: "rgba(255,255,255,0.9)", textDecoration: "underline" }}
+          >
+            텔레파시 바로가기
+          </a>
+        </footer>
+      </div>
+    </>
   );
-}
+}  
 
 export default App;

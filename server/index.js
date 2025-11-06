@@ -17,6 +17,7 @@ const allowedOrigins = [
   "http://localhost:5173",
   "https://magic-conch.vercel.app",
   "https://magic-conch-omega.vercel.app",
+  "https://magic-conch-1doi.onrender.com",
 ];
 
 // ✅ CORS 설정

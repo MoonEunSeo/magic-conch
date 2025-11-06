@@ -1,85 +1,69 @@
 .modal-backdrop {
-    position: fixed;
-    inset: 0;
-    background: black;
-    opacity: 0.5;
-    z-index: 50;
-  }
-  
-  .share-modal {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%); /* ✅ 화면 완전 중앙 정렬 */
-    background: rgba(255, 255, 255, 0.95);
-    border-radius: 20px;
-    padding: 25px 40px;
-    text-align: center;
-    z-index: 9999; /* 🔼 다른 모든 요소 위 */
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
-  
-    /* 🔧 모바일 대응 (뷰포트 기준 중앙 고정) */
-    width: 85%;
-    max-width: 400px;
-  }
-  
-  .share-modal h3 {
-    font-family: "Paperlogy-7", sans-serif;
-    font-size: 1.3em;
-    margin-bottom: 18px;
-    color: #222;
-  }
-  
-  .share-buttons {
-    display: flex;
-    justify-content: center;
-    gap: 18px;
-    flex-wrap: wrap;
-    margin-bottom: 20px;
-  }
-  
-  .share-buttons button {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    background: transparent;
-    border: none;
-    cursor: pointer;
-    transition: transform 0.2s ease;
-  }
-  
-  .share-buttons button:hover {
-    transform: scale(1.1);
-  }
-  
-  .share-buttons img {
-    width: 50px;
-    height: 50px;
-    margin-bottom: 6px;
-  }
-  
-  .share-buttons span {
-    font-family: "Paperlogy-4", sans-serif;
-    font-size: 0.9em;
-    color: #333;
-  }
-  
-  .close-btn {
-    background: #eaeaea;
-    border: none;
-    border-radius: 8px;
-    padding: 6px 14px;
-    font-family: "Paperlogy-4", sans-serif;
-    cursor: pointer;
-    transition: background 0.2s ease;
-  }
-  
-  .close-btn:hover {
-    background: #d6d6d6;
-  }
-  
-  @supports (height: 100dvh) {
-    .share-modal {
-      top: 50dvh; /* 모바일 브라우저 주소창 높이 변동에도 항상 중앙 유지 */
-    }
-  }
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  z-index: 9998;
+}
+
+.share-modal {
+  position: fixed;
+  top: 50dvh;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 20px;
+  padding: 25px 40px;
+  text-align: center;
+  z-index: 9999;
+  width: 85%;
+  max-width: 400px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+}
+
+.share-modal h3 {
+  font-family: "Paperlogy-7", sans-serif;
+  font-size: 1.3em;
+  margin-bottom: 18px;
+  color: #222;
+}
+
+.share-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 18px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.share-buttons button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+.share-buttons button:hover { transform: scale(1.1); }
+
+.share-buttons img {
+  width: 50px;
+  height: 50px;
+  margin-bottom: 6px;
+}
+.share-buttons span {
+  font-family: "Paperlogy-4", sans-serif;
+  font-size: 0.9em;
+  color: #333;
+}
+
+.close-btn {
+  background: #eaeaea;
+  border: none;
+  border-radius: 8px;
+  padding: 6px 14px;
+  font-family: "Paperlogy-4", sans-serif;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+.close-btn:hover { background: #d6d6d6; }

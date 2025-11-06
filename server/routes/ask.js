@@ -23,7 +23,6 @@ router.post("/", async (req, res) => {
     return res.status(400).json({ error: "질문이 비어 있어요." });
   }
 
-  const prompt = promptTemplate(question);
   const start = Date.now();
 
   try {
@@ -36,14 +35,12 @@ router.post("/", async (req, res) => {
       body: JSON.stringify({
         model: "llama-3.1-8b-instant",
         messages: [
-          {
-            role: "system",
-            content: "너는 마법의 소라고동이다. 짧고 신비롭게 대답하지만, 무의미한 말은 하지 않는다. 반드시 10자 이내로 한 문장만 말해라."
-          },
-          { role: "user", content: prompt },
+          { role: "system", content: promptTemplate },
+          { role: "user", content: question },
         ],
-        temperature: 0.8,
-        max_tokens: 60,
+        temperature: 0.7, 
+        max_tokens: 50,
+        stop: ["\n", "Q:", "User:", "사용자:"], 
       }),
     });
 
@@ -51,6 +48,8 @@ router.post("/", async (req, res) => {
       console.error("Groq API Error:", await response.text());
       return res.status(502).json({ error: "Groq API 오류 발생" });
     }
+
+
 //  응답 파싱
     const data = await response.json();
     const fullAnswer = data.choices?.[0]?.message?.content?.trim() || "🐚 ...아직 말이 없네요.";
